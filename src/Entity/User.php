@@ -4,23 +4,31 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\Timestampable;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 class User
 {
+    use Timestampable;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('index')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
@@ -28,9 +36,13 @@ class User
     private ?Client $client = null;
 
     #[ORM\Column]
+    #[Groups('index')]
+    #[Gedmo\Timestampable(on: 'create')]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column]
+    #[Groups('index')]
+    #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updated_at = null;
 
     public function getId(): ?int

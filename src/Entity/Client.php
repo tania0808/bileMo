@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
@@ -15,12 +16,15 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('index')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -29,12 +33,15 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $plainPassword;
 
     #[ORM\Column]
+    #[Groups('index')]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column]
+    #[Groups('index')]
     private ?\DateTimeImmutable $updated_at = null;
 
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: User::class)]
+    #[Groups('index')]
     private Collection $users;
 
     public function __construct()

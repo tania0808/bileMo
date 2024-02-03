@@ -21,6 +21,7 @@ class ClientFixtures extends Fixture
             $client->setPassword(
                 $this->passwordHasher->hashPassword($client, 'admin123')
             );
+            $client->setAddress('address '.$i);
             $client->setCreatedAt(new \DateTimeImmutable());
             $client->setUpdatedAt(new \DateTimeImmutable());
 

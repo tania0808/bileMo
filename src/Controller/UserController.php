@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,9 +16,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 class UserController extends AbstractController
 {
     #[Route('/api/clients/{id}/users', name: 'app_client_users', methods: ['GET'])]
-    public function index(Client $client, SerializerInterface $serializer): JsonResponse
+    public function index(Request $request, Client $client, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
     {
-        $users = $client->getUsers();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+
+        $users = $userRepository->findAllByClientIdWithPagination($client, $page, $limit);
         $users = $serializer->serialize($users, 'json', ['groups' => 'index']);
 
         return new JsonResponse($users, 200, [], true);

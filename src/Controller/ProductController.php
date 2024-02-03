@@ -6,6 +6,7 @@ use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -17,9 +18,12 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products', name: 'app_products', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $products = $this->productRepository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+
+        $products = $this->productRepository->getAllWithPagination($page, $limit);
 
         return $this->json($products);
     }

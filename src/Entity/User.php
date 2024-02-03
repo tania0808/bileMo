@@ -43,6 +43,7 @@ class User
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups('index')]
     private ?Client $client = null;
 
     public function getId(): ?int

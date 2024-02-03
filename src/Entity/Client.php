@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
@@ -16,9 +17,11 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('index')]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Groups('index')]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -31,17 +34,21 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('index')]
     private ?string $address = null;
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'create')]
+    #[Groups('index')]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column]
     #[Gedmo\Timestampable(on: 'update')]
+    #[Groups('index')]
     private ?\DateTimeImmutable $updated_at = null;
 
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: User::class, orphanRemoval: true)]

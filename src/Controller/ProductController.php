@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractController
 {
@@ -18,14 +20,22 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products', name: 'app_products', methods: ['GET'])]
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, SerializerInterface $serializer, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
 
-        $products = $this->productRepository->getAllWithPagination($page, $limit);
+        $cacheId = 'productsList-' . $page . '-' . $limit;
 
-        return $this->json($products);
+        $productsList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit) {
+            echo 'not cached';
+           $item->tag('productsCache');
+           return $this->productRepository->getAllWithPagination($page, $limit);
+        });
+
+        $jsonProductsList = $serializer->serialize($productsList, 'json');
+
+        return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);
     }
 
     #[Route('/api/products/{id}', name: 'app_product', methods: ['GET'])]

@@ -5,9 +5,47 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\Timestampable;
-use Symfony\Component\Serializer\Attribute\Groups;
+use JMS\Serializer\Annotation\Groups;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Hateoas\Configuration\Annotation as Hateoas;
 
+/**
+ * @Hateoas\Relation(
+ *     "list",
+ *     href = @Hateoas\Route(
+ *       "client_users_list",
+ *         parameters = { "id" = "expr(object.getClient().getId())", "page" = "expr(1)", "limit" = "expr(10)" }
+ *     ),
+ *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ * )
+ *
+ * @Hateoas\Relation(
+ *     "self",
+ *     href = @Hateoas\Route(
+ *         "client_user_detail",
+ *         parameters = { "client" = "expr(object.getClient().getId())", "user" = "expr(object.getId())" }
+ *     ),
+ *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ * )
+ *
+ * @Hateoas\Relation(
+ *     "create",
+ *     href = @Hateoas\Route(
+ *         "client_user_create",
+ *         parameters = { "id" = "expr(object.getClient().getId())" }
+ *     ),
+ *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ * )
+ *
+ * @Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *         "client_user_delete",
+ *         parameters = { "client" = "expr(object.getClient().getId())", "user" = "expr(object.getId())" }
+ *     ),
+ *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ * )
+ */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 class User
@@ -16,34 +54,34 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups('index')]
+    #[Groups(['index'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('index')]
+    #[Groups(['index'])]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('index')]
+    #[Groups(['index'])]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('index')]
+    #[Groups(['index'])]
     private ?string $email = null;
 
     #[ORM\Column]
-    #[Groups('index')]
+    #[Groups(['index'])]
     #[Gedmo\Timestampable(on: 'create')]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column]
-    #[Groups('index')]
+    #[Groups(['index'])]
     #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updated_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups('index')]
+    #[Groups(['index'])]
     private ?Client $client = null;
 
     public function getId(): ?int

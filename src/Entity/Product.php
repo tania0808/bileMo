@@ -4,7 +4,27 @@ namespace App\Entity;
 
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Hateoas\Configuration\Annotation as Hateoas;
 
+/**
+ * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "products_list",
+ *          parameters = { "page" = "expr(1)", "limit" = "expr(10)" }
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ *  )
+ *
+ * @Hateoas\Relation (
+ *     "self",
+ *     href = @Hateoas\Route(
+ *      "product_show",
+ *       parameters = { "id" = "expr(object.getId())" },
+ *     ),
+ *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
+ * )
+ */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {

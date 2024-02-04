@@ -11,13 +11,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class UserController extends AbstractController
 {
-    #[Route('/api/clients/{id}/users', name: 'app_client_users', methods: ['GET'])]
+    #[Route('/api/clients/{id}/users', name: 'client_users_list', methods: ['GET'])]
     public function index(
         Request $request,
         Client $client,
@@ -36,22 +37,23 @@ class UserController extends AbstractController
            $item->tag('usersCache');
            $item->expiresAfter(60);
            $usersList = $userRepository->findAllByClientIdWithPagination($client, $page, $limit);
-
-           return $serializer->serialize($usersList, 'json', ['groups' => 'index']);
+           $context = SerializationContext::create()->setGroups(['index']);
+           return $serializer->serialize($usersList, 'json', $context);
         });
 
         return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/api/clients/{client}/users/{user}', name: 'app_client_user', methods: ['GET'])]
+    #[Route('/api/clients/{client}/users/{user}', name: 'client_user_detail', methods: ['GET'])]
     public function getClientUser(Client $client, User $user, SerializerInterface $serializer): JsonResponse
     {
-        $user = $serializer->serialize($user, 'json', ['groups' => 'index']);
+        $context = SerializationContext::create()->setGroups(['index']);
+        $user = $serializer->serialize($user, 'json', $context);
 
         return new JsonResponse($user, 200, [], true);
     }
 
-    #[Route('/api/clients/{id}/users', name: 'app_client_user_create', methods: ['POST'])]
+    #[Route('/api/clients/{id}/users', name: 'client_user_create', methods: ['POST'])]
     public function createClientUser(Client $client, Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
@@ -61,13 +63,14 @@ class UserController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'index']);
+        $context = SerializationContext::create()->setGroups(['index']);
+        $jsonUser = $serializer->serialize($user, 'json', $context);
         $location = $this->generateUrl('app_client_user', ['client' => $client->getId(), 'user' => $user->getId()]);
 
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['location' => $location], true);
     }
 
-    #[Route('/api/clients/{client}/users/{user}', name: 'app_client_user_delete', methods: ['DELETE'])]
+    #[Route('/api/clients/{client}/users/{user}', name: 'client_user_delete', methods: ['DELETE'])]
     public function deleteClientUser(Client $client, User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
         $tagAwareCache->invalidateTags(['usersCache']);

@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractController
@@ -19,7 +19,7 @@ class ProductController extends AbstractController
     {
     }
 
-    #[Route('/api/products', name: 'app_products', methods: ['GET'])]
+    #[Route('/api/products', name: 'products_list', methods: ['GET'])]
     public function index(Request $request, SerializerInterface $serializer, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
         $page = $request->get('page', 1);
@@ -38,7 +38,7 @@ class ProductController extends AbstractController
         return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/api/products/{id}', name: 'app_product', methods: ['GET'])]
+    #[Route('/api/products/{id}', name: 'product_show', methods: ['GET'])]
     public function show(Product $product): JsonResponse
     {
         return $this->json($product);

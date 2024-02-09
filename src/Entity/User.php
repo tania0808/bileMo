@@ -8,7 +8,7 @@ use Gedmo\Timestampable\Traits\Timestampable;
 use JMS\Serializer\Annotation\Groups;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Hateoas\Configuration\Annotation as Hateoas;
-
+use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @Hateoas\Relation(
  *     "list",
@@ -59,14 +59,17 @@ class User
 
     #[ORM\Column(length: 255)]
     #[Groups(['index'])]
+    #[Assert\NotBlank(message: 'Please enter a first name')]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['index'])]
+    #[Assert\NotBlank(message: 'Please enter a last name')]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['index'])]
+    #[Assert\NotNull(message: 'Please enter an email')]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -130,9 +133,9 @@ class User
         return $this->created_at;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $created_at;
+        $this->created_at = $createdAt;
 
         return $this;
     }
@@ -142,9 +145,9 @@ class User
         return $this->updated_at;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updated_at): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
-        $this->updated_at = $updated_at;
+        $this->updated_at = $updatedAt;
 
         return $this;
     }

@@ -8,9 +8,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ClientController extends AbstractController
 {
@@ -25,7 +27,7 @@ class ClientController extends AbstractController
     }
 
     #[Route('/api/register', name: 'app_client_register', methods: ['POST'])]
-    public function register(Request $request): JsonResponse
+    public function register(Request $request, ValidatorInterface $validator): JsonResponse
     {
         $data = $this->serializer->deserialize($request->getContent(), Client::class, 'json');
 
@@ -36,9 +38,13 @@ class ClientController extends AbstractController
         if ($client_exists) {
             return new JsonResponse([
                 'message' => 'Client already exists'
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
+        $errors = $validator->validate($data);
+        if (count($errors) > 0) {
+            return new JsonResponse($this->serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+        }
         $client = new Client();
         $client->setEmail($email);
         $client->setLibelle($data->getLibelle());
@@ -49,8 +55,9 @@ class ClientController extends AbstractController
 
         $this->entityManager->persist($client);
         $this->entityManager->flush();
+
         return new JsonResponse([
             'message' => 'Client created successfully!'
-        ], 201);
+        ], Response::HTTP_OK);
     }
 }

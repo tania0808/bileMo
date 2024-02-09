@@ -10,6 +10,7 @@ use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
@@ -22,6 +23,8 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['index'])]
+    #[Assert\NotNull(message: 'Please enter an email')]
+    #[Assert\Email]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -31,14 +34,17 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\NotNull(message: 'Please enter a password')]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['index'])]
+    #[Assert\NotBlank(message: 'Please enter a libelle')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['index'])]
+    #[Assert\NotNull(message: 'Please enter an address')]
     private ?string $address = null;
 
     #[ORM\Column]

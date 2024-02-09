@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Entity\User;
+use App\Repository\ClientRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,7 +34,6 @@ class UserController extends AbstractController
         $cacheId = 'usersList-' . $page . '-' . $limit;
 
         $jsonUsersList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit, $client, $userRepository, $serializer) {
-           echo 'cached!';
            $item->tag('usersCache');
            $item->expiresAfter(60);
            $usersList = $userRepository->findAllByClientIdWithPagination($client, $page, $limit);
@@ -54,9 +54,21 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/clients/{id}/users', name: 'client_user_create', methods: ['POST'])]
-    public function createClientUser(Client $client, Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
+    public function createClientUser(
+        Client $client,
+        Request $request,
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager,
+        TagAwareCacheInterface $tagAwareCache,
+        UserRepository $userRepository,
+    ): JsonResponse
     {
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+
+        if($userRepository->findOneBy(['email' => $user->getEmail()])) {
+            return new JsonResponse(['message' => 'User already exists'], Response::HTTP_BAD_REQUEST);
+        }
+
         $tagAwareCache->invalidateTags(['usersCache']);
 
         $user->setClient($client);
@@ -65,7 +77,7 @@ class UserController extends AbstractController
 
         $context = SerializationContext::create()->setGroups(['index']);
         $jsonUser = $serializer->serialize($user, 'json', $context);
-        $location = $this->generateUrl('app_client_user', ['client' => $client->getId(), 'user' => $user->getId()]);
+        $location = $this->generateUrl('client_user_detail', ['client' => $client->getId(), 'user' => $user->getId()]);
 
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['location' => $location], true);
     }
@@ -74,6 +86,7 @@ class UserController extends AbstractController
     public function deleteClientUser(Client $client, User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
         $tagAwareCache->invalidateTags(['usersCache']);
+
         $entityManager->remove($user);
         $entityManager->flush();
 

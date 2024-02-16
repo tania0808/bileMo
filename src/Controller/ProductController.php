@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use OpenApi\Attributes as OA;
 
 class ProductController extends AbstractController
 {
@@ -19,6 +20,29 @@ class ProductController extends AbstractController
     {
     }
 
+    /**
+     * Retrieve the list of products
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'The list of products'
+    )]
+    #[OA\Get(
+        path: '/api/products',
+        tags: ['Product'],
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        description: 'The page number',
+        in: 'query',
+        required: false,
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        description: 'The number of items per page',
+        in: 'query',
+        required: false,
+    )]
     #[Route('/api/products', name: 'products_list', methods: ['GET'])]
     public function index(Request $request, SerializerInterface $serializer, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {
@@ -28,7 +52,6 @@ class ProductController extends AbstractController
         $cacheId = 'productsList-' . $page . '-' . $limit;
 
         $productsList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit) {
-            echo 'not cached';
            $item->tag('productsCache');
            return $this->productRepository->getAllWithPagination($page, $limit);
         });
@@ -38,10 +61,30 @@ class ProductController extends AbstractController
         return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Retrieve the details of a product
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'The product details'
+    )]
+    #[OA\Get(
+        path: '/api/products/{id}',
+        tags: ['Product'],
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'The id of the product',
+        in: 'path',
+        required: true,
+    )]
+
     #[Route('/api/products/{id}', name: 'product_show', methods: ['GET'])]
-    public function show(Product $product): JsonResponse
+    public function show(Product $product, SerializerInterface $serializer): JsonResponse
     {
-        return $this->json($product);
+        $jsonProduct = $serializer->serialize($product, 'json');
+
+        return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
     }
 
 }

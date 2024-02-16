@@ -13,6 +13,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use OpenApi\Attributes as OA;
 
 class ClientController extends AbstractController
 {
@@ -26,38 +27,62 @@ class ClientController extends AbstractController
     {
     }
 
+    /**
+     * Register a new client
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Client created successfully !'
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Client already exists !'
+    )]
+    #[OA\Post(
+        path: '/api/register',
+        tags: ['Client'],
+    )]
+    #[OA\RequestBody(
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'email', type: 'string', default: 'tania08082000@gmail.com'),
+                new OA\Property(property: 'password', type: 'string', default: 'admin123'),
+                new OA\Property(property: 'libelle', type: 'string', default: 'Verger de la colline SARL'),
+                new OA\Property(property: 'address', type: 'string', default: 'Saudoy 51120'),
+            ]
+        )
+    )]
     #[Route('/api/register', name: 'app_client_register', methods: ['POST'])]
     public function register(Request $request, ValidatorInterface $validator): JsonResponse
     {
-        $data = $this->serializer->deserialize($request->getContent(), Client::class, 'json');
+        $client = $this->serializer->deserialize($request->getContent(), Client::class, 'json');
 
-        $email = $data->getEmail();
-        $password = $data->getPassword();
+        $client_exists = $this->clientRepository->findOneByEmail($client->getEmail());
 
-        $client_exists = $this->clientRepository->findOneByEmail($email);
-        if ($client_exists) {
+        if (null !== $client_exists) {
             return new JsonResponse([
-                'message' => 'Client already exists'
+                'message' => 'Client already exists !'
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $errors = $validator->validate($data);
+        $errors = $validator->validate($client);
+
         if (count($errors) > 0) {
-            return new JsonResponse($this->serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+            return new JsonResponse(
+                $this->serializer->serialize($errors, 'json'),
+                Response::HTTP_BAD_REQUEST
+            );
         }
-        $client = new Client();
-        $client->setEmail($email);
-        $client->setLibelle($data->getLibelle());
-        $client->setAddress($data->getAddress());
+
         $client->setPassword(
-            $this->passwordHasher->hashPassword($client, $password)
+            $this->passwordHasher->hashPassword($client, $client->getPassword())
         );
 
         $this->entityManager->persist($client);
         $this->entityManager->flush();
 
         return new JsonResponse([
-            'message' => 'Client created successfully!'
+            'message' => 'Client created successfully !'
         ], Response::HTTP_OK);
     }
 }

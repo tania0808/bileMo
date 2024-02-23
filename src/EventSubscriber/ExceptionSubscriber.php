@@ -14,24 +14,22 @@ class ExceptionSubscriber implements EventSubscriberInterface
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
-        $data = [];
+        $data = [
+            'status' => 500,
+            'message' => $exception->getMessage(),
+        ];
 
-        if($exception instanceof HttpException) {
+        if ($exception instanceof HttpException) {
             $data = [
                 'status' => $exception->getStatusCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ];
         }
-        if($exception instanceof NotFoundHttpException) {
+
+        if ($exception instanceof NotFoundHttpException) {
             $data = [
                 'status' => $exception->getStatusCode(),
-                'message' => 'Resource not found !'
-            ];
-        }
-        else {
-            $data = [
-                'status' => 500,
-                'message' => $exception->getMessage()
+                'message' => 'Resource not found !',
             ];
         }
 

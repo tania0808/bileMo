@@ -15,7 +15,6 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      ),
  *      exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
  *  )
- *
  * @Hateoas\Relation (
  *     "self",
  *     href = @Hateoas\Route(

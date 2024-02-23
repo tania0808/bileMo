@@ -4,15 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
+use JMS\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\ItemInterface;
-use JMS\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use OpenApi\Attributes as OA;
 
 class ProductController extends AbstractController
 {
@@ -21,7 +21,7 @@ class ProductController extends AbstractController
     }
 
     /**
-     * Retrieve the list of products
+     * Retrieve the list of products.
      */
     #[OA\Response(
         response: 200,
@@ -49,11 +49,12 @@ class ProductController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
 
-        $cacheId = 'productsList-' . $page . '-' . $limit;
+        $cacheId = 'productsList-'.$page.'-'.$limit;
 
         $productsList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit) {
-           $item->tag('productsCache');
-           return $this->productRepository->getAllWithPagination($page, $limit);
+            $item->tag('productsCache');
+            $item->expiresAfter(60);
+            return $this->productRepository->getAllWithPagination($page, $limit);
         });
 
         $jsonProductsList = $serializer->serialize($productsList, 'json');
@@ -62,7 +63,7 @@ class ProductController extends AbstractController
     }
 
     /**
-     * Retrieve the details of a product
+     * Retrieve the details of a product.
      */
     #[OA\Response(
         response: 200,
@@ -78,7 +79,6 @@ class ProductController extends AbstractController
         in: 'path',
         required: true,
     )]
-
     #[Route('/api/products/{id}', name: 'product_show', methods: ['GET'])]
     public function show(Product $product, SerializerInterface $serializer): JsonResponse
     {
@@ -86,5 +86,4 @@ class ProductController extends AbstractController
 
         return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
     }
-
 }

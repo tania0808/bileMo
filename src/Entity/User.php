@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Timestampable\Traits\Timestampable;
-use JMS\Serializer\Annotation\Groups;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\Timestampable\Traits\Timestampable;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * @Hateoas\Relation(
  *     "list",
@@ -18,7 +19,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     ),
  *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
  * )
- *
  * @Hateoas\Relation(
  *     "self",
  *     href = @Hateoas\Route(
@@ -27,7 +27,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     ),
  *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
  * )
- *
  * @Hateoas\Relation(
  *     "create",
  *     href = @Hateoas\Route(
@@ -36,7 +35,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     ),
  *     exclusion = @Hateoas\Exclusion(groups = {"index"}, excludeIf = "expr(not is_granted('ROLE_USER'))")
  * )
- *
  * @Hateoas\Relation(
  *     "delete",
  *     href = @Hateoas\Route(
@@ -51,6 +49,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class User
 {
     use Timestampable;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

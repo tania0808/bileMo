@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Client;
 use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,22 +14,19 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use OpenApi\Attributes as OA;
 
 class ClientController extends AbstractController
 {
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ClientRepository $clientRepository,
         private UserPasswordHasherInterface $passwordHasher,
         private SerializerInterface $serializer
-    )
-    {
+    ) {
     }
 
     /**
-     * Register a new client
+     * Register a new client.
      */
     #[OA\Response(
         response: 200,
@@ -61,16 +59,18 @@ class ClientController extends AbstractController
 
         if (null !== $client_exists) {
             return new JsonResponse([
-                'message' => 'Client already exists !'
+                'message' => 'Client already exists !',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $errors = $validator->validate($client);
 
-        if (count($errors) > 0) {
+        if ($errors->count() > 0) {
             return new JsonResponse(
                 $this->serializer->serialize($errors, 'json'),
-                Response::HTTP_BAD_REQUEST
+                Response::HTTP_BAD_REQUEST,
+                [],
+                true
             );
         }
 
@@ -82,7 +82,7 @@ class ClientController extends AbstractController
         $this->entityManager->flush();
 
         return new JsonResponse([
-            'message' => 'Client created successfully !'
+            'message' => 'Client created successfully !',
         ], Response::HTTP_OK);
     }
 }

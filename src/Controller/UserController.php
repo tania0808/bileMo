@@ -4,24 +4,24 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Entity\User;
-use App\Repository\ClientRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use OpenApi\Attributes as OA;
 
 class UserController extends AbstractController
 {
     /**
-     * Retrieve the list of users of a client
+     * Retrieve the list of users of a client.
      */
     #[OA\Get(
         path: '/api/clients/{id}/users',
@@ -56,28 +56,26 @@ class UserController extends AbstractController
         UserRepository $userRepository,
         SerializerInterface $serializer,
         TagAwareCacheInterface $tagAwareCache
-    ): JsonResponse
-    {
-
+    ): JsonResponse {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
 
-        $cacheId = 'usersList-' . $page . '-' . $limit;
+        $cacheId = 'usersList-'.$page.'-'.$limit;
 
         $jsonUsersList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit, $client, $userRepository, $serializer) {
-           $item->tag('usersCache');
-           $item->expiresAfter(60);
-           $usersList = $userRepository->findAllByClientIdWithPagination($client, $page, $limit);
-           $context = SerializationContext::create()->setGroups(['index']);
+            $item->tag('usersCache');
+            $item->expiresAfter(60);
+            $usersList = $userRepository->findAllByClientIdWithPagination($client, $page, $limit);
+            $context = SerializationContext::create()->setGroups(['index']);
 
-           return $serializer->serialize($usersList, 'json', $context);
+            return $serializer->serialize($usersList, 'json', $context);
         });
 
         return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
     }
 
     /**
-     * Retrieve the details of a user of a client
+     * Retrieve the details of a user of a client.
      */
     #[OA\Get(
         path: '/api/clients/{client}/users/{user}',
@@ -99,7 +97,6 @@ class UserController extends AbstractController
         response: 200,
         description: 'The user details'
     )]
-
     #[Route('/api/clients/{client}/users/{user}', name: 'client_user_detail', methods: ['GET'])]
     public function getClientUser(Client $client, User $user, SerializerInterface $serializer): JsonResponse
     {
@@ -110,7 +107,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Create a new user for a client
+     * Create a new user for a client.
      */
     #[OA\Post(
         path: '/api/clients/{id}/users',
@@ -147,14 +144,26 @@ class UserController extends AbstractController
         EntityManagerInterface $entityManager,
         TagAwareCacheInterface $tagAwareCache,
         UserRepository $userRepository,
-    ): JsonResponse
-    {
+        ValidatorInterface $validator
+    ): JsonResponse {
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
 
-        if($userRepository->findOneBy(['email' => $user->getEmail()])) {
-            return new JsonResponse([
+        if ($userRepository->findOneBy(['email' => $user->getEmail()])) {
+            return new JsonResponse(
+                [
                 'message' => 'User already exists'],
                 Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $errors = $validator->validate($user);
+
+        if ($errors->count() > 0) {
+            return new JsonResponse(
+                $serializer->serialize($errors, 'json'),
+                Response::HTTP_BAD_REQUEST,
+                [],
+                true
             );
         }
 
@@ -176,7 +185,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Delete a user of a client
+     * Delete a user of a client.
      */
     #[OA\Delete(
         path: '/api/clients/{client}/users/{user}',
@@ -186,7 +195,6 @@ class UserController extends AbstractController
         response: 204,
         description: 'User deleted successfully !'
     )]
-
     #[Route('/api/clients/{client}/users/{user}', name: 'client_user_delete', methods: ['DELETE'])]
     public function deleteClientUser(Client $client, User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {

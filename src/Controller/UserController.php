@@ -191,10 +191,6 @@ class UserController extends AbstractController
         path: '/api/clients/{client}/users/{user}',
         tags: ['User'],
     )]
-    #[OA\Response(
-        response: 204,
-        description: 'User deleted successfully !'
-    )]
     #[Route('/api/clients/{client}/users/{user}', name: 'client_user_delete', methods: ['DELETE'])]
     public function deleteClientUser(Client $client, User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $tagAwareCache): JsonResponse
     {

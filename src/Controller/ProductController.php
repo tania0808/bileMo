@@ -53,7 +53,7 @@ class ProductController extends AbstractController
 
         $productsList = $tagAwareCache->get($cacheId, function (ItemInterface $item) use ($page, $limit) {
             $item->tag('productsCache');
-            $item->expiresAfter(60);
+            $item->expiresAfter(1);
             return $this->productRepository->getAllWithPagination($page, $limit);
         });
 

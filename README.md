@@ -21,7 +21,16 @@ composer install
 docker-compose up
 symfony server:start -d
 ```
-4. Load the fixtures:
+4. Create the database:
+```
+php bin/console doctrine:database:create
+```
+5. Run the migrations:
+```
+php bin/console doctrine:migrations:migrate
+```
+
+6. Load the fixtures:
 ```
 php bin/console doctrine:fixtures:load
 ```
